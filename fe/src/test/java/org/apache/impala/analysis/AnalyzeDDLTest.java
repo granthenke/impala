@@ -1807,9 +1807,6 @@ public class AnalyzeDDLTest extends FrontendTestBase {
         " stored as kudu as select vc from functional.chars_tiny",
         "Cannot create table 't': Type VARCHAR(32) is not supported in Kudu");
     AnalysisError("create table t primary key (id) partition by hash partitions 3" +
-        " stored as kudu as select c1 as id from functional.decimal_tiny",
-        "Cannot create table 't': Type DECIMAL(10,4) is not supported in Kudu");
-    AnalysisError("create table t primary key (id) partition by hash partitions 3" +
         " stored as kudu as select id, s from functional.complextypes_fileformat",
         "Expr 's' in select list returns a complex type 'STRUCT<f1:STRING,f2:INT>'.\n" +
         "Only scalar types are allowed in the select list.");
@@ -2450,8 +2447,7 @@ public class AnalyzeDDLTest extends FrontendTestBase {
         "in Kudu tables.");
 
     // Test unsupported Kudu types
-    List<String> unsupportedTypes = Lists.newArrayList(
-        "DECIMAL(9,0)", "VARCHAR(20)", "CHAR(20)",
+    List<String> unsupportedTypes = Lists.newArrayList("VARCHAR(20)", "CHAR(20)",
         "STRUCT<f1:INT,f2:STRING>", "ARRAY<INT>", "MAP<STRING,STRING>");
     for (String t: unsupportedTypes) {
       String expectedError = String.format(
@@ -2499,10 +2495,11 @@ public class AnalyzeDDLTest extends FrontendTestBase {
       }
     }
     // Use NULL as default values
-    AnalyzesOk("create table tab (x int primary key, i1 tinyint default null, " +
-        "i2 smallint default null, i3 int default null, i4 bigint default null, " +
-        "vals string default null, valf float default null, vald double default null, " +
-        "valb boolean default null) partition by hash (x) partitions 3 stored as kudu");
+    AnalyzesOk("create table tab (x int primary key, i1 tinyint default null, "
+        + "i2 smallint default null, i3 int default null, i4 bigint default null, "
+        + "vals string default null, valf float default null, vald double default null, "
+        + "valb boolean default null, valdec decimal(10, 5) default null) "
+        + "partition by hash (x) partitions 3 stored as kudu");
     // Use NULL as a default value on a non-nullable column
     AnalysisError("create table tab (x int primary key, y int not null default null) " +
         "partition by hash (x) partitions 3 stored as kudu", "Default value of NULL " +
@@ -2530,12 +2527,13 @@ public class AnalyzeDDLTest extends FrontendTestBase {
         "Unsupported compression algorithm 'INVALID_COMP'. Supported compression " +
         "algorithms are: " + Joiner.on(", ").join(CompressionAlgorithm.values()));
     // Default values
-    AnalyzesOk("create table tab (i1 tinyint default 1, i2 smallint default 10, " +
-        "i3 int default 100, i4 bigint default 1000, vals string default 'test', " +
-        "valf float default cast(1.2 as float), vald double default " +
-        "cast(3.1452 as double), valb boolean default true, " +
-        "primary key (i1, i2, i3, i4, vals)) partition by hash (i1) partitions 3 " +
-        "stored as kudu");
+    AnalyzesOk("create table tab (i1 tinyint default 1, i2 smallint default 10, "
+        + "i3 int default 100, i4 bigint default 1000, vals string default 'test', "
+        + "valf float default cast(1.2 as float), vald double default "
+        + "cast(3.1452 as double), valb boolean default true, "
+        + "valdec decimal(10, 5) default 3.14159, "
+        + "primary key (i1, i2, i3, i4, vals)) partition by hash (i1) partitions 3 "
+        + "stored as kudu");
     AnalyzesOk("create table tab (i int primary key default 1+1+1) " +
         "partition by hash (i) partitions 3 stored as kudu");
     AnalyzesOk("create table tab (i int primary key default factorial(5)) " +
