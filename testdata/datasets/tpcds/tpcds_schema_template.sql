@@ -645,7 +645,7 @@ text:serialization.null.format=
 ---- DEPENDENT_LOAD
 -- Split the load into multiple steps to reduce total memory usage for larger
 -- scale factors. TODO: Dynamically scale this based on the scale factor?
-INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name} PARTITION (ss_sold_date_sk)
+INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name}
 {hint} SELECT ss_sold_time_sk,
   ss_item_sk,
   ss_customer_sk,
@@ -672,7 +672,7 @@ INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name} PARTITION (ss_sold_date
 FROM {db_name}.{table_name}
 WHERE ss_sold_date_sk IS NULL;
 
-INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name} PARTITION (ss_sold_date_sk)
+INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name}
 {hint} SELECT ss_sold_time_sk,
   ss_item_sk,
   ss_customer_sk,
@@ -699,7 +699,7 @@ INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name} PARTITION (ss_sold_date
 FROM {db_name}.{table_name}
 WHERE ss_sold_date_sk < 2451272;
 
-INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name} PARTITION (ss_sold_date_sk)
+INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name}
 {hint} SELECT ss_sold_time_sk,
   ss_item_sk,
   ss_customer_sk,
@@ -726,7 +726,7 @@ INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name} PARTITION (ss_sold_date
 FROM {db_name}.{table_name}
 WHERE 2451272 <= ss_sold_date_sk and ss_sold_date_sk < 2451728;
 
-INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name} PARTITION (ss_sold_date_sk)
+INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name}
 {hint} SELECT ss_sold_time_sk,
   ss_item_sk,
   ss_customer_sk,
@@ -753,7 +753,7 @@ INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name} PARTITION (ss_sold_date
 FROM {db_name}.{table_name}
 WHERE 2451728 <= ss_sold_date_sk and ss_sold_date_sk < 2452184;
 
-INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name} PARTITION (ss_sold_date_sk)
+INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name}
 {hint} SELECT ss_sold_time_sk,
   ss_item_sk,
   ss_customer_sk,
@@ -787,7 +787,7 @@ set hive.exec.max.dynamic.partitions=10000;
 set hive.exec.dynamic.partition.mode=nonstrict;
 set hive.exec.dynamic.partition=true;
 
-insert overwrite table {table_name} partition(ss_sold_date_sk)
+insert overwrite table {table_name}
 select ss_sold_time_sk,
   ss_item_sk,
   ss_customer_sk,
@@ -815,7 +815,7 @@ from store_sales_unpartitioned
 WHERE ss_sold_date_sk IS NULL
 distribute by ss_sold_date_sk;
 
-insert overwrite table {table_name} partition(ss_sold_date_sk)
+insert overwrite table {table_name}
 select ss_sold_time_sk,
   ss_item_sk,
   ss_customer_sk,
@@ -843,7 +843,7 @@ from store_sales_unpartitioned
 WHERE ss_sold_date_sk < 2451272
 distribute by ss_sold_date_sk;
 
-insert overwrite table {table_name} partition(ss_sold_date_sk)
+insert overwrite table {table_name}
 select ss_sold_time_sk,
   ss_item_sk,
   ss_customer_sk,
@@ -871,7 +871,7 @@ from store_sales_unpartitioned
 WHERE 2451272 <= ss_sold_date_sk and ss_sold_date_sk < 2451728
 distribute by ss_sold_date_sk;
 
-insert overwrite table {table_name} partition(ss_sold_date_sk)
+insert overwrite table {table_name}
 select ss_sold_time_sk,
   ss_item_sk,
   ss_customer_sk,
@@ -899,7 +899,7 @@ from store_sales_unpartitioned
 WHERE 2451728 <= ss_sold_date_sk and ss_sold_date_sk < 2452184
 distribute by ss_sold_date_sk;
 
-insert overwrite table {table_name} partition(ss_sold_date_sk)
+insert overwrite table {table_name}
 select ss_sold_time_sk,
   ss_item_sk,
   ss_customer_sk,

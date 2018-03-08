@@ -559,6 +559,7 @@ def generate_statements(output_name, test_vectors, sections,
           insert = eval_section(section['DEPENDENT_LOAD_KUDU'])
       else:
         create_kudu = None
+        primary_keys = None
 
       # For some datasets we may want to use a different load strategy when running local
       # tests versus tests against large scale factors. The most common reason is to
