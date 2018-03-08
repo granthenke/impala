@@ -526,8 +526,10 @@ if $KUDU_IS_SUPPORTED; then
   # Tests depend on the kudu data being clean, so load the data from scratch.
   run-step-backgroundable "Loading Kudu functional" load-kudu.log \
         load-data "functional-query" "core" "kudu/none/none" force
-  run-step-backgroundable "Loading Kudu TPCH" load-kudu-tpch.log \
+  run-step-backgroundable "Loading Kudu TPC-H" load-kudu-tpch.log \
         load-data "tpch" "core" "kudu/none/none" force
+  run-step-backgroundable "Loading Kudu TPC-DS" load-kudu-tpcds.log \
+        load-data "tpcds" "core" "kudu/none/none" force
 fi
 run-step-backgroundable "Loading Hive UDFs" build-and-copy-hive-udfs.log \
     build-and-copy-hive-udfs

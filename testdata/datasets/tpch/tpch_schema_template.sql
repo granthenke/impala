@@ -38,29 +38,11 @@ L_RECEIPTDATE STRING
 L_SHIPINSTRUCT STRING
 L_SHIPMODE STRING
 L_COMMENT STRING
+---- PRIMARY_KEYS
+-- TODO: Just 'L_ORDERKEY, L_LINENUMBER' when kudu doesn't care about order
+L_ORDERKEY, L_PARTKEY, L_SUPPKEY, L_LINENUMBER
 ---- ROW_FORMAT
 DELIMITED FIELDS TERMINATED BY '|'
----- CREATE_KUDU
-create table if not exists {db_name}{db_suffix}.{table_name} (
-  L_ORDERKEY BIGINT,
-  L_PARTKEY BIGINT,
-  L_SUPPKEY BIGINT,
-  L_LINENUMBER INT,
-  L_QUANTITY DECIMAL(12,2),
-  L_EXTENDEDPRICE DECIMAL(12,2),
-  L_DISCOUNT DECIMAL(12,2),
-  L_TAX DECIMAL(12,2),
-  L_RETURNFLAG STRING,
-  L_LINESTATUS STRING,
-  L_SHIPDATE STRING,
-  L_COMMITDATE STRING,
-  L_RECEIPTDATE STRING,
-  L_SHIPINSTRUCT STRING,
-  L_SHIPMODE STRING,
-  L_COMMENT STRING,
-  PRIMARY KEY(L_ORDERKEY, L_PARTKEY, L_SUPPKEY, L_LINENUMBER)
-)
-partition by hash (l_orderkey) partitions 9 stored as kudu;
 ---- DEPENDENT_LOAD
 INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name} SELECT * FROM {db_name}.{table_name};
 ---- LOAD
@@ -83,19 +65,6 @@ P_RETAILPRICE DECIMAL(12,2)
 P_COMMENT STRING
 ---- ROW_FORMAT
 DELIMITED FIELDS TERMINATED BY '|'
----- CREATE_KUDU
-create table if not exists {db_name}{db_suffix}.{table_name} (
-  P_PARTKEY BIGINT PRIMARY KEY,
-  P_NAME STRING,
-  P_MFGR STRING,
-  P_BRAND STRING,
-  P_TYPE STRING,
-  P_SIZE INT,
-  P_CONTAINER STRING,
-  P_RETAILPRICE DECIMAL(12,2),
-  P_COMMENT STRING
-)
-partition by hash (p_partkey) partitions 9 stored as kudu;
 ---- DEPENDENT_LOAD
 INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name} SELECT * FROM {db_name}.{table_name};
 ---- LOAD
@@ -112,18 +81,10 @@ PS_SUPPKEY BIGINT
 PS_AVAILQTY INT
 PS_SUPPLYCOST DECIMAL(12,2)
 PS_COMMENT STRING
+---- PRIMARY_KEYS
+PS_PARTKEY, PS_SUPPKEY
 ---- ROW_FORMAT
 DELIMITED FIELDS TERMINATED BY '|'
----- CREATE_KUDU
-create table if not exists {db_name}{db_suffix}.{table_name} (
-  PS_PARTKEY BIGINT,
-  PS_SUPPKEY BIGINT,
-  PS_AVAILQTY BIGINT,
-  PS_SUPPLYCOST DECIMAL(12,2),
-  PS_COMMENT STRING,
-  PRIMARY KEY(PS_PARTKEY, PS_SUPPKEY)
-)
-partition by hash (ps_partkey, ps_suppkey) partitions 9 stored as kudu;
 ---- DEPENDENT_LOAD
 INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name} SELECT * FROM {db_name}.{table_name};
 ---- LOAD
@@ -144,17 +105,6 @@ S_ACCTBAL DECIMAL(12,2)
 S_COMMENT STRING
 ---- ROW_FORMAT
 DELIMITED FIELDS TERMINATED BY '|'
----- CREATE_KUDU
-create table if not exists {db_name}{db_suffix}.{table_name} (
-  S_SUPPKEY BIGINT PRIMARY KEY,
-  S_NAME STRING,
-  S_ADDRESS STRING,
-  S_NATIONKEY SMALLINT,
-  S_PHONE STRING,
-  S_ACCTBAL DECIMAL(12,2),
-  S_COMMENT STRING
-)
-partition by hash (s_suppkey) partitions 9 stored as kudu;
 ---- DEPENDENT_LOAD
 INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name} SELECT * FROM {db_name}.{table_name};
 ---- LOAD
@@ -172,14 +122,6 @@ N_REGIONKEY SMALLINT
 N_COMMENT STRING
 ---- ROW_FORMAT
 DELIMITED FIELDS TERMINATED BY '|'
----- CREATE_KUDU
-create table if not exists {db_name}{db_suffix}.{table_name} (
-  N_NATIONKEY SMALLINT PRIMARY KEY,
-  N_NAME STRING,
-  N_REGIONKEY SMALLINT,
-  N_COMMENT STRING
-)
-stored as kudu;
 ---- DEPENDENT_LOAD
 INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name} SELECT * FROM {db_name}.{table_name};
 ---- LOAD
@@ -196,13 +138,6 @@ R_NAME STRING
 R_COMMENT STRING
 ---- ROW_FORMAT
 DELIMITED FIELDS TERMINATED BY '|'
----- CREATE_KUDU
-create table if not exists {db_name}{db_suffix}.{table_name} (
-  R_REGIONKEY SMALLINT PRIMARY KEY,
-  R_NAME STRING,
-  R_COMMENT STRING
-)
-stored as kudu;
 ---- DEPENDENT_LOAD
 INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name} SELECT * FROM {db_name}.{table_name};
 ---- LOAD
@@ -225,19 +160,6 @@ O_SHIPPRIORITY INT
 O_COMMENT STRING
 ---- ROW_FORMAT
 DELIMITED FIELDS TERMINATED BY '|'
----- CREATE_KUDU
-create table if not exists {db_name}{db_suffix}.{table_name} (
-  O_ORDERKEY BIGINT PRIMARY KEY,
-  O_CUSTKEY BIGINT,
-  O_ORDERSTATUS STRING,
-  O_TOTALPRICE DECIMAL(12,2),
-  O_ORDERDATE STRING,
-  O_ORDERPRIORITY STRING,
-  O_CLERK STRING,
-  O_SHIPPRIORITY INT,
-  O_COMMENT STRING
-)
-partition by hash (o_orderkey) partitions 9 stored as kudu;
 ---- DEPENDENT_LOAD
 INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name} SELECT * FROM {db_name}.{table_name};
 ---- LOAD
@@ -259,18 +181,6 @@ C_MKTSEGMENT STRING
 C_COMMENT STRING
 ---- ROW_FORMAT
 DELIMITED FIELDS TERMINATED BY '|'
----- CREATE_KUDU
-create table if not exists {db_name}{db_suffix}.{table_name} (
-  C_CUSTKEY BIGINT PRIMARY KEY,
-  C_NAME STRING,
-  C_ADDRESS STRING,
-  C_NATIONKEY SMALLINT,
-  C_PHONE STRING,
-  C_ACCTBAL DECIMAL(12,2),
-  C_MKTSEGMENT STRING,
-  C_COMMENT STRING
-)
-partition by hash (c_custkey) partitions 9 stored as kudu;
 ---- DEPENDENT_LOAD
 INSERT OVERWRITE TABLE {db_name}{db_suffix}.{table_name} SELECT * FROM {db_name}.{table_name};
 ---- LOAD

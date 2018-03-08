@@ -190,7 +190,7 @@ def build_create_statement(table_template, table_name, db_name, db_suffix,
   return create_stmt
 
 def build_table_template(file_format, columns, partition_columns, row_format,
-                         avro_schema_dir, table_name, table_properties):
+                         avro_schema_dir, table_name, table_properties, primary_keys):
   if file_format == 'hbase':
     return build_hbase_create_stmt_in_hive(columns, partition_columns, table_name)
 
@@ -223,16 +223,34 @@ def build_table_template(file_format, columns, partition_columns, row_format,
     row_format_stmt = str()
   elif file_format == 'kudu':
     # Use partitioned_by to set a trivial hash distribution
-    assert not partitioned_by, "Kudu table shouldn't have partition cols defined"
-    partitioned_by = "partition by hash partitions 3"
+    # TODO: Currently, Kudu does not support partitioned tables via Impala.
+    # TODO: Automatically set #buckets as a function of cluster nodes and/or
+    # scale
+    if partition_columns != '':
+      print "Ignore partitions on Kudu table: %s" % table_name
+      columns += '\n' + partition_columns # Add the partition columns to the main list
+      # partitioned_by = 'PARTITIONED BY HASH (%s) partitions 9' % \
+      #                  ', '.join(partition_columns.split('\n'))
+      partitioned_by = "partition by hash partitions 9"
+    else:
+      # TODO: use primary_keys
+      partitioned_by = "partition by hash partitions 9"
 
     # Fetch KUDU host and port from environment
     kudu_master = os.getenv("KUDU_MASTER_HOSTS", "127.0.0.1")
     kudu_master_port = os.getenv("KUDU_MASTER_PORT", "7051")
     row_format_stmt = str()
+    # TODO: Remove the 'kudu.master_addresses' from TBLPROPERTIES once CM properly sets
+    # the 'kudu_masters' startup option in Impala.
     tblproperties["kudu.master_addresses"] = \
       "{0}:{1}".format(kudu_master, kudu_master_port)
-    primary_keys_clause = ", PRIMARY KEY (%s)" % columns.split("\n")[0].split(" ")[0]
+
+    # Set Kudu primary keys
+    if primary_keys:
+      primary_keys_clause = ", PRIMARY KEY (%s)" % primary_keys
+    else:
+      # The first column is implicitly the primary key
+      primary_keys_clause = ", PRIMARY KEY (%s)" % columns.split("\n")[0].split(" ")[0]
     # Kudu's test tables are managed.
     external = ""
 
@@ -536,6 +554,7 @@ def generate_statements(output_name, test_vectors, sections,
 
       if file_format == 'kudu':
         create_kudu = section["CREATE_KUDU"]
+        primary_keys = section["PRIMARY_KEYS"]
         if section['DEPENDENT_LOAD_KUDU']:
           insert = eval_section(section['DEPENDENT_LOAD_KUDU'])
       else:
@@ -594,12 +613,6 @@ def generate_statements(output_name, test_vectors, sections,
         # Impala CREATE TABLE doesn't allow INPUTFORMAT.
         output = hive_output
 
-      # TODO: Currently, Kudu does not support partitioned tables via Impala.
-      # If a CREATE_KUDU section was provided, assume it handles the partition columns
-      if file_format == 'kudu' and partition_columns != '' and not create_kudu:
-        print "Ignore partitions on Kudu table: %s.%s" % (db_name, table_name)
-        continue
-
       # If a CREATE section is provided, use that. Otherwise a COLUMNS section
       # must be provided (and optionally PARTITION_COLUMNS and ROW_FORMAT
       # sections), which is used to generate the create table statement.
@@ -610,7 +623,7 @@ def generate_statements(output_name, test_vectors, sections,
       elif create:
         table_template = create
         if file_format in ['avro', 'hbase', 'kudu']:
-          # We don't know how to generalize CREATE sections to Avro and hbase.
+          # We don't know how to generalize CREATE sections to Avro, hbase, and kudu
           print ("CREATE section not supported with %s, "
                  "skipping: '%s'" % (file_format, table_name))
           continue
@@ -618,7 +631,7 @@ def generate_statements(output_name, test_vectors, sections,
         avro_schema_dir = "%s/%s" % (AVRO_SCHEMA_DIR, data_set)
         table_template = build_table_template(
           create_file_format, columns, partition_columns,
-          row_format, avro_schema_dir, table_name, table_properties)
+          row_format, avro_schema_dir, table_name, table_properties, primary_keys)
         # Write Avro schema to local file
         if file_format == 'avro':
           if not os.path.exists(avro_schema_dir):
@@ -716,7 +729,7 @@ def parse_schema_template_file(file_name):
                          'ROW_FORMAT', 'CREATE', 'CREATE_HIVE', 'CREATE_KUDU',
                          'DEPENDENT_LOAD', 'DEPENDENT_LOAD_KUDU', 'DEPENDENT_LOAD_HIVE',
                          'LOAD', 'LOAD_LOCAL', 'ALTER', 'HBASE_COLUMN_FAMILIES',
-                         'TABLE_PROPERTIES']
+                         'TABLE_PROPERTIES', 'PRIMARY_KEYS']
   return parse_test_file(file_name, VALID_SECTION_NAMES, skip_unknown_sections=False)
 
 if __name__ == "__main__":
