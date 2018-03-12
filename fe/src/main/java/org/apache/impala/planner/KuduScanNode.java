@@ -25,6 +25,7 @@ import java.util.Set;
 import org.apache.impala.analysis.Analyzer;
 import org.apache.impala.analysis.BinaryPredicate;
 import org.apache.impala.analysis.BoolLiteral;
+import org.apache.impala.analysis.CastExpr;
 import org.apache.impala.analysis.Expr;
 import org.apache.impala.analysis.InPredicate;
 import org.apache.impala.analysis.IsNullPredicate;
@@ -348,7 +349,13 @@ public class KuduScanNode extends ScanNode {
     ComparisonOp op = getKuduOperator(predicate.getOp());
     if (op == null) return false;
 
-    if (!(predicate.getChild(0) instanceof SlotRef)) return false;
+    if (!(predicate.getChild(0) instanceof SlotRef)) {
+      Expr child = predicate.getChild(0);
+      LOG.info("Exception converting Kudu predicate thats not a SlotRef: " + child.toSql() +
+          " DEBUG: " + child.debugString());
+      return false;
+    }
+
     SlotRef ref = (SlotRef) predicate.getChild(0);
 
     if (!(predicate.getChild(1) instanceof LiteralExpr)) return false;

@@ -535,6 +535,21 @@ INSERT INTO KUDU [functional_kudu.jointbl]
 00:SCAN HDFS [functional.alltypes]
    partitions=24/24 files=24 size=478.45KB
 ====
+# Decimal integral predicate.
+select * from functional_kudu.decimal_tbl where d1 = 1234;
+---- PLAN
+PLAN-ROOT SINK
+|
+00:SCAN KUDU [functional_kudu.decimal_tbl]
+   kudu predicates: d1 = 1234
+---- DISTRIBUTEDPLAN
+PLAN-ROOT SINK
+|
+01:EXCHANGE [UNPARTITIONED]
+|
+00:SCAN KUDU [functional_kudu.decimal_tbl]
+   kudu predicates: d1 = 1234
+====
 # Decimal predicate.
 select * from functional_kudu.decimal_tbl where d4 = 0.123456789;
 ---- PLAN
@@ -564,4 +579,19 @@ PLAN-ROOT SINK
 |
 00:SCAN KUDU [functional_kudu.decimal_tbl]
    kudu predicates: d1 IN (1234, 12345)
+====
+# Decimal predicate.
+select * from functional_kudu.alltypestiny where double_col > 0
+---- PLAN
+PLAN-ROOT SINK
+|
+00:SCAN KUDU [functional_kudu.alltypestiny]
+   kudu predicates: double_col > 0
+---- DISTRIBUTEDPLAN
+PLAN-ROOT SINK
+|
+01:EXCHANGE [UNPARTITIONED]
+|
+00:SCAN KUDU [functional_kudu.alltypestiny]
+   kudu predicates: double_col > 0
 ====
